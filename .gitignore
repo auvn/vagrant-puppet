@@ -1,0 +1,3 @@
+vagrant/Vagrantfile
+vagrant/.vagrant
+puppet/manifests/site.pp

@@ -1,0 +1,5 @@
+# File managed by Puppet
+
+ZONE="<%= zone %>"
+UTC=false
+ARC=false

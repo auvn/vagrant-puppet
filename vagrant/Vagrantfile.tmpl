@@ -1,0 +1,58 @@
+
+vm_mem = "1024"
+
+$host_script = <<SCRIPT
+#!/bin/bash
+cat > /etc/hosts <<EOF
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+$master_ip $master_name.localdomain $master_name
+$slave1_ip $slave1_name.localdomain $slave1_name
+EOF
+mkdir -p /var/lib/hiera
+cat > /var/lib/hiera/defaults.yaml <<EOF
+---
+controlled_shutdown_enable: 'true'
+EOF
+SCRIPT
+
+$API_VERSION = "2"
+Vagrant.configure($API_VERSION) do |config|
+
+  config.ssh.username = "vagrant"
+  config.ssh.password = "vagrant"
+  config.ssh.insert_key = false
+
+  config.vm.define :master do |master|
+    master.vm.box = "centos64"
+    master.vm.provider :virtualbox do |v|
+      v.name = "$master_name"
+      v.customize ["modifyvm", :id, "--memory", vm_mem]
+    end
+    master.vm.hostname = "$master_name.localdomain"
+    master.vm.network :private_network, ip: "$master_ip"
+  end
+
+  config.vm.define :slave1 do |slave1|
+    slave1.vm.box = "centos64"
+    slave1.vm.provider :virtualbox do |v|
+      v.name = "$slave1_name"
+      v.customize ["modifyvm", :id, "--memory", vm_mem]
+    end
+    slave1.vm.hostname = "$slave1_name.localdomain"
+    slave1.vm.network :private_network, ip: "$slave1_ip"
+  end
+
+  config.vm.provision :shell, :inline => $host_script
+  config.vm.provision :puppet do |puppet|
+    puppet.manifests_path = '../puppet/manifests'
+    puppet.manifest_file = 'site.pp'
+    puppet.module_path = '../puppet/modules'
+    puppet.options = '--verbose --debug'
+    puppet.facter = {
+        "os_maj_version"  => '6',
+        "architecture"    => 'x86_64'
+    }
+  end
+end
