@@ -47,6 +47,11 @@ node default {
       file => "/etc/sysctl.conf",
       line => "net.ipv6.conf.default.disable_ipv6 = 1"
     }
+	
+    class { 'java':
+        distribution => 'jdk',
+    }
+
 }
 
 
