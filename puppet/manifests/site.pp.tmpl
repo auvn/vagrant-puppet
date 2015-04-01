@@ -55,7 +55,7 @@ node '$master_name.localdomain' inherits default {
     haproxy::listen { 
         '$master_name':
         collect_exported => false,
-        ipaddress        => $master_ip,
+        ipaddress        => '$master_ip',
         ports            => '$master_port',
     }
 
