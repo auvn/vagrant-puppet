@@ -1,7 +1,6 @@
 
 VM_MEM = "$vm_mem"
 VM_BOX_NAME = "$vm_box_name"
-ARCH = "$arch"
 
 $host_script = <<SCRIPT
 #!/bin/bash
@@ -64,7 +63,7 @@ Vagrant.configure($API_VERSION) do |config|
     puppet.options = '--verbose --debug'
     puppet.facter = {
         "os_maj_version"  => '6',
-        "architecture"    => ARCH
+        "architecture"    => 'x86_64'
     }
   end
 end

@@ -4,7 +4,6 @@ def config():
     config = {
         'vm_mem' : '128',
         'vm_box_name' : 'puppetlabs/centos-6.6-32-puppet',
-        'arch' : 'x86',
         'master_name': 'vm-cluster-node1',
         'slave1_name': 'vm-cluster-node2',
         'slave2_name': 'vm-cluster-node3',

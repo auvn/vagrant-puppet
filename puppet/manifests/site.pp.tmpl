@@ -51,7 +51,34 @@ node default {
 
 
 node '$master_name.localdomain' inherits default {
+    class { 'haproxy': }
+    haproxy::listen { 
+        '$master_name':
+        collect_exported => false,
+        ipaddress        => $master_ip,
+        ports            => '$master_port',
+    }
 
+    haproxy::balancermember { 
+        '$slave1_name':
+    
+        listening_service => '$master_name',
+        server_names      => '$slave1_name.localdomain',
+        ipaddresses       => '$slave1_ip',
+        ports             => '$master_port',
+        options           => 'check',
+    }
+ 
+    haproxy::balancermember { 
+        '$slave2_name':   
+        listening_service => '$master_name',
+        server_names      => '$slave2_name.localdomain',
+        ipaddresses       => '$slave2_ip',
+        ports             => '$master_port',
+        options           => 'check',
+    }
+
+	
 }
 
 node '$slave1_name.localdomain' inherits default {
