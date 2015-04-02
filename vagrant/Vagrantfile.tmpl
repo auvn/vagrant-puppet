@@ -20,8 +20,8 @@ EOF
 SCRIPT
 
 API_VERSION = "2"
-SSH_USERNAME = $ssh_app_username
-SSH_PWD = $ssh_app_password
+SSH_USERNAME = "$ssh_app_username"
+SSH_PWD = "$ssh_app_password"
 Vagrant.configure(API_VERSION) do |config|
 
   config.vm.define :master do |master|
