@@ -55,7 +55,7 @@ node default {
         ensure => present,
         shell => '/bin/sh',
 	managehome => true,
-	password => sha1('$ssh_app_password')
+	password => generate('/bin/sh', '-c', "mkpasswd -m sha-512 $ssh_app_password | tr -d '\n'")
     }
 
 }
