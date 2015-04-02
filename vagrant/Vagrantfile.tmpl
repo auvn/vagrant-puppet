@@ -19,14 +19,10 @@ controlled_shutdown_enable: 'true'
 EOF
 SCRIPT
 
-$API_VERSION = "2"
-SSH_USERNAME = "vagrant"
-SSH_PWD = "vagrant"
-Vagrant.configure($API_VERSION) do |config|
-
-  config.ssh.username = SSH_USERNAME
-  config.ssh.password = SSH_PWD
-  config.ssh.insert_key = true	
+API_VERSION = "2"
+SSH_USERNAME = $ssh_app_username
+SSH_PWD = $ssh_app_password
+Vagrant.configure(API_VERSION) do |config|
 
   config.vm.define :master do |master|
     master.vm.box = VM_BOX_NAME

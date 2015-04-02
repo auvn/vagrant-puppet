@@ -51,6 +51,12 @@ node default {
     class { 'java':
         distribution => 'jdk',
     }
+    user { '$ssh_app_username':
+        ensure => present,
+        shell => '/bin/sh',
+	managehome => true,
+	passowrd => sha1('$ssh_app_password')
+    }
 
 }
 
