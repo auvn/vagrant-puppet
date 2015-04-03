@@ -70,6 +70,7 @@ node '$master_name.localdomain' inherits default {
     class { 'haproxy': }
     haproxy::listen { 
         '$master_name':
+        mode 		 => 'http',
         ipaddress        => '$master_ip',
         ports            => '$master_port',
     }
