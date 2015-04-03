@@ -51,11 +51,19 @@ node default {
     class { 'java':
         distribution => 'jre',
     }
+
     user { '$ssh_app_username':
         ensure => present,
         shell => '/bin/sh',
 	managehome => true,
 	password => generate('/bin/sh', '-c', "mkpasswd -m sha-512 $ssh_app_password | tr -d '\n'")
+    }
+
+    file { '$app_directory':
+        ensure => 'directory',
+        owner => 'root',
+        group => 'wheel',
+        mode => 777
     }
 
 }

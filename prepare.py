@@ -1,23 +1,8 @@
 from string import Template
+import json
 
 def config():
-    config = {
-        'vm_mem' : '128',
-        'vm_box_name' : 'puppetlabs/centos-6.6-32-puppet',
-
-	'ssh_app_username' : 'app_user',
-	'ssh_app_password' : 'app_user',
-
-        'master_name': 'vm-cluster-node1',
-        'master_ip': '10.211.55.201',
-	'master_port' : '8080',
-
-        'slave1_name': 'vm-cluster-node2',
-        'slave1_ip': '10.211.55.202',
-
-        'slave2_name': 'vm-cluster-node3',
-        'slave2_ip': '10.211.55.203',
-    }
+    config = json.loads(open('./config.json').read())
     return config
 
 if __name__ == "__main__":
