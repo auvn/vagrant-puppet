@@ -73,7 +73,7 @@ node '$master_name.localdomain' inherits default {
         mode 		 => 'http',
         ipaddress        => '$master_ip',
         ports            => '$master_port',
-        options          => 'httpchk'
+        option          => 'httpchk'
     }
 
     haproxy::balancermember { 
