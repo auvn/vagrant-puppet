@@ -20,8 +20,6 @@ EOF
 SCRIPT
 
 API_VERSION = "2"
-SSH_USERNAME = "$ssh_app_username"
-SSH_PWD = "$ssh_app_password"
 Vagrant.configure(API_VERSION) do |config|
 
   config.vm.define :master do |master|
@@ -52,36 +50,6 @@ Vagrant.configure(API_VERSION) do |config|
     slave2.vm.hostname = "$slave2_name.localdomain"
     slave2.vm.network :private_network, ip: "$slave2_ip"
   end
-
-  config.push.define "master", strategy: "ftp" do |push|
-        push.host = "$master_ip"
-        push.username = SSH_USERNAME
-        push.password = SSH_PWD
-        push.secure = true
-        push.dir = "./build"                                                                                                                                                                                                                                                   
-        push.include = "*.jar"
-        push.destination = "~/"
-  end
-
-  config.push.define "slave1", strategy: "ftp" do |push|
-        push.host = "$slave1_ip"
-        push.username = SSH_USERNAME                                                                                                                                                                                                                                           
-        push.password = SSH_PWD                                                                                                                                                                                                                                                
-        push.secure = true
-        push.dir = "./build"   
-        push.include = "*.jar"
-        push.destination = "~/"
-  end
-  config.push.define "slave2", strategy: "ftp" do |push|
-        push.host = "$slave2_ip"                                                                                                                                                                                                                                               
-        push.username = SSH_USERNAME
-        push.password = SSH_PWD
-        push.secure = true
-        push.dir = "./build"   
-        push.include = "*.jar"
-        push.destination = "~/"
-  end
-
 
   config.vm.provision :shell, :inline => $host_script
   config.vm.provision :puppet do |puppet|
