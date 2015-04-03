@@ -87,12 +87,14 @@ def publish_app_task(task_args):
         abort("Looks like '%s' is not a jar file." % jar_file_name)
 
     app_directory = config()['app_directory']
-    app_directory = '~/'
 
     target_file = "%s/%s" % (app_directory, 'app.jar')
 
+    command = "java -jar %s" % target_file
+
+    run('pkill -f "%s"' % command)
     put(jar_file, target_file)
-    run('nohup java -jar %s > out.log &' % (target_file), pty=False)
+    run('nohup %s > %s/out.log &' % (command, app_directory), pty=False)
 
 ############# IMPLEMENTATION ###############
 
