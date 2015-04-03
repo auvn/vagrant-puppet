@@ -4,27 +4,6 @@ import sys
 import json
 import argparse
 import os
-
-
-def install(package):
-    if not package:
-       return None
-    easy_install.main(['-q','-U',package])
-
-def check_module(module, package):  
-    if not package:
-	return None
-    if not module:
-	return None
-    try:
-	__import__(module)
-    except ImportError:
-        install(package)
-
-check_module('vagrant','python_vagrant')
-check_module('Crypto','pycrypto')
-check_module('fabric','fabric')
-
 from fabric.api import *
 import vagrant
 
