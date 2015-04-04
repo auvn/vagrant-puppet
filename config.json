@@ -4,6 +4,8 @@
 
 "app_directory" : "/srv/app",
 
+"ssh_user" : "vagrant",
+
 "root_password" : "root",
 
 "master_name": "vm-cluster-node1",

@@ -21,6 +21,7 @@ SCRIPT
 
 API_VERSION = "2"
 Vagrant.configure(API_VERSION) do |config|
+  config.ssh.username = "$ssh_user"
 
   config.vm.define :master do |master|
     master.vm.box = VM_BOX_NAME
