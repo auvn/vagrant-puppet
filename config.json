@@ -4,7 +4,7 @@
 
 "app_directory" : "/srv/app",
 
-"root_password" : "root"
+"root_password" : "root",
 
 "master_name": "vm-cluster-node1",
 "master_ip": "10.211.55.201",
