@@ -61,7 +61,7 @@ def publish_app_task(task_args):
     if not jar_file_name.endswith('.jar'):
         abort("Looks like '%s' is not a jar file." % jar_file_name)
 
-    app_directory = config()['app_directory']
+    app_directory = config()['apps']['app']['dir']
 
     target_file = "%s/%s" % (app_directory, 'app.jar')
 
