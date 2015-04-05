@@ -6,7 +6,7 @@ import argparse
 import os
 from fabric.api import *
 import vagrant
-
+import uuid
 
 vgrnt = vagrant.Vagrant()
 
@@ -62,8 +62,8 @@ def publish_app_task(task_args):
         abort("Looks like '%s' is not a jar file." % jar_file_name)
 
     app_directory = config()['apps']['app']['dir']
-
-    target_file = "%s/%s" % (app_directory, 'app.jar')
+    
+    target_file = "%s/%s.jar" % (app_directory, str(uuid.uuid4()))
 
     command = "java -jar %s" % target_file
 
