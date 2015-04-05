@@ -1,16 +1,16 @@
 
-VM_MEM = "$vm_mem"
-VM_BOX_NAME = "$vm_box_name"
+VM_MEM = "<[vm_mem]>"
+VM_BOX_NAME = "<[vm_box_name]>"
 
-$host_script = <<SCRIPT
+HOST_SCRIPT = <<SCRIPT
 #!/bin/bash
 cat > /etc/hosts <<EOF
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
-$master_ip $master_name.localdomain $master_name
-$slave1_ip $slave1_name.localdomain $slave1_name
-$slave2_ip $slave2_name.localdomain $slave2_name
+<[hosts[master][ip]]> <[hosts[master][name]]>.localdomain <[hosts[master][name]]>
+<[hosts[slave1][ip]]> <[hosts[slave1][name]]>.localdomain <[hosts[slave1][name]]>
+<[hosts[slave2][ip]]> <[hosts[slave2][name]]>.localdomain <[hosts[slave2][name]]>
 EOF
 mkdir -p /var/lib/hiera
 cat > /var/lib/hiera/defaults.yaml <<EOF
@@ -21,38 +21,40 @@ SCRIPT
 
 API_VERSION = "2"
 Vagrant.configure(API_VERSION) do |config|
-  config.ssh.username = "$ssh_user"
+  config.ssh.username = "<[ssh_user]>"
 
-  config.vm.define :master do |master|
-    master.vm.box = VM_BOX_NAME
-    master.vm.provider :virtualbox do |v|
-      v.name = "$master_name"
+  config.vm.define :master do |c|
+    c.vm.box = VM_BOX_NAME
+    c.vm.provider :virtualbox do |v|
+      v.name = "<[hosts[master][name]]>"
       v.customize ["modifyvm", :id, "--memory", VM_MEM]
     end
-    master.vm.hostname = "$master_name.localdomain"
-    master.vm.network :private_network, ip: "$master_ip"
+    c.vm.hostname = "<[hosts[master][name]]>.localdomain"
+    c.vm.network :private_network, ip: "<[hosts[master][ip]]>"
   end
 
-  config.vm.define :slave1 do |slave1|
-    slave1.vm.box = VM_BOX_NAME
-    slave1.vm.provider :virtualbox do |v|
-      v.name = "$slave1_name"
+  config.vm.define :slave1 do |c|
+    c.vm.box = VM_BOX_NAME
+    c.vm.provider :virtualbox do |v|
+      v.name = "<[hosts[slave1][name]]>"
       v.customize ["modifyvm", :id, "--memory", VM_MEM]
     end
-    slave1.vm.hostname = "$slave1_name.localdomain"
-    slave1.vm.network :private_network, ip: "$slave1_ip"
-  end
-  config.vm.define :slave2 do |slave2|
-    slave2.vm.box = VM_BOX_NAME
-    slave2.vm.provider :virtualbox do |v|
-      v.name = "$slave2_name"
-      v.customize ["modifyvm", :id, "--memory", VM_MEM]
-    end
-    slave2.vm.hostname = "$slave2_name.localdomain"
-    slave2.vm.network :private_network, ip: "$slave2_ip"
+    c.vm.hostname = "<[hosts[slave1][name]]>.localdomain"
+    c.vm.network :private_network, ip: "<[hosts[slave1][ip]]>"
   end
 
-  config.vm.provision :shell, :inline => $host_script
+  config.vm.define :slave2 do |c|
+    c.vm.box = VM_BOX_NAME
+    c.vm.provider :virtualbox do |v|
+      v.name = "<[hosts[slave2][name]]>"
+      v.customize ["modifyvm", :id, "--memory", VM_MEM]
+    end
+    c.vm.hostname = "<[hosts[slave2][name]]>.localdomain"
+    c.vm.network :private_network, ip: "<[hosts[slave2][ip]]>"
+  end
+
+
+  config.vm.provision :shell, :inline => HOST_SCRIPT
   config.vm.provision :puppet do |puppet|
     puppet.manifests_path = '../puppet/manifests'
     puppet.manifest_file = 'site.pp'

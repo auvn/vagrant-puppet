@@ -52,7 +52,7 @@ node default {
         distribution => 'jre',
     }
 
-    file { '$app_directory':
+    file { '<[apps[app][dir]]>':
         ensure => 'directory',
         owner => 'root',
         group => 'wheel',
@@ -60,9 +60,9 @@ node default {
     }
     user {'root':
         ensure => present,
-        password => generate('/bin/sh', '-c', "openssl passwd -1 $root_password | tr -d '\n'")
+        password => generate('/bin/sh', '-c', "openssl passwd -1 <[root_password]> | tr -d '\n'")
     }
-    user {'$ssh_user':
+    user {'<[ssh_user]>':
         ensure => present, 
         groups => ['wheel']
     }
@@ -70,41 +70,41 @@ node default {
 }
 
 
-node '$master_name.localdomain' inherits default {
+node '<[hosts[master][name]]>.localdomain' inherits default {
     class { 'haproxy': }
     haproxy::listen { 
-        '$master_name':
+        '<[hosts[master][name]]>':
         mode 		 => 'http',
-        ipaddress        => '$master_ip',
-        ports            => '$master_port',
+        ipaddress        => '<[hosts[master][ip]]>',
+        ports            => '<[apps[app][port]]>',
         options          => {option => ['httpchk']}
     }
 
     haproxy::balancermember { 
-        '$slave1_name':
+        '<[hosts[slave1][name]]>':
     
-        listening_service => '$master_name',
-        server_names      => '$slave1_name.localdomain',
-        ipaddresses       => '$slave1_ip',
-        ports             => '$master_port',
+        listening_service => '<[hosts[master][name]]>',
+        server_names      => '<[hosts[slave1][name]]>.localdomain',
+        ipaddresses       => '<[hosts[slave1][ip]]>',
+        ports             => '<[apps[app][port]]>',
         options           => 'check'
     }
  
     haproxy::balancermember { 
-        '$slave2_name':   
-        listening_service => '$master_name',
-        server_names      => '$slave2_name.localdomain',
-        ipaddresses       => '$slave2_ip',
-        ports             => '$master_port',
+        '<[hosts[slave2][name]]>':
+    
+        listening_service => '<[hosts[master][name]]>',
+        server_names      => '<[hosts[slave2][name]]>.localdomain',
+        ipaddresses       => '<[hosts[slave2][ip]]>',
+        ports             => '<[apps[app][port]]>',
         options           => 'check'
     }
-
 	
 }
 
-node '$slave1_name.localdomain' inherits default {
+node '<[hosts[slave1][name]]>.localdomain' inherits default {
 
 }
-node '$slave2_name.localdomain' inherits default {
+node '<[hosts[slave2][name]]>.localdomain' inherits default {
 
 }
