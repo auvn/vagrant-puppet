@@ -14,20 +14,14 @@ data = {}
 
 def get_vms():
     if not 'vms' in data:
-        vms = [status.name for status in vgrnt.status() if status.state == 'running']
+        vms = [status.name for status in vgrnt.status() if status.state == vgrnt.RUNNING]
         data['vms'] = vms
     return data['vms']
 
 def get_ssh_opts(name):
     if not name:
         return None
-    ssh_config = None
-    try:
-        ssh_config = vgrnt.ssh_config(name).split()
-    except Exception:
-        return None
-    opts = dict(zip(ssh_config[::2], ssh_config[1::2]))
-    return opts
+    return vgrnt.conf(vm_name=name)
 
 def get_vm_connections():
     if not 'vm_connections' in data:
@@ -38,17 +32,19 @@ def get_vm_connections():
 def config():
     return json.loads(open('../config.json').read())
 
+def get_vm_name(connection):
+    return "%s" % connection['Host']
+
 def get_host(connection):
-    return "%s@%s:%s" % (connection['User'], connection['HostName'], connection['Port'])
+    vm_name = get_vm_name(connection)
+    return vgrnt.user_hostname_port(vm_name=vm_name)
 
 def get_hosts_dict(*args):
     return {get_host(conn): conn for conn in get_vm_connections().values()}
 
-def get_vm_name(connection):
-    return "%s" % connection['Host']
-
 def get_key_filename(connection):
-    return "%s" % connection['IdentityFile']
+    vm_name = get_vm_name(connection)
+    return "%s" % vgrnt.keyfile(vm_name=vm_name)
 
 def test_url_response(url):
     pass
@@ -79,7 +75,7 @@ def publish_app_task(task_args):
 
 def prepare_connection(function, connections, args):
     vm_name = env.host_string
-    connection = connections[vm_name]
+    connection = connections[vm_name]   
     host = get_host(connection)
     key_filename = get_key_filename(connection)
     with settings(key_filename=key_filename, warn_only=True):
@@ -125,7 +121,6 @@ if __name__ == '__main__':
             if not host in running_hosts:
                 print "'%s' is down. Skipping." % host
                 hosts.remove(host)
-            
     args['hosts'] = hosts
     function  = args.pop('func')
     function(args)
