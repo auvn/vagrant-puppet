@@ -1,8 +1,7 @@
-Необходимые компоненты
 VirtualBox
 vagrant
 maven
 jdk
-python-dev (иногда встречается под названием python-devel)
+python-dev(python-devel)
 python-setuptool
 
