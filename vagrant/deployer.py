@@ -6,7 +6,9 @@ import argparse
 import os
 from fabric.api import *
 import vagrant
-import uuid
+import httplib
+
+
 
 vgrnt = vagrant.Vagrant()
 
@@ -30,7 +32,9 @@ def get_vm_connections():
     return data['vm_connections']
 
 def config():
-    return json.loads(open('../config.json').read())
+    if not 'config' in data:
+        data['config'] = json.loads(open('../config.json').read())
+    return data['config']
 
 def get_vm_name(connection):
     return "%s" % connection['Host']
@@ -46,8 +50,18 @@ def get_key_filename(connection):
     vm_name = get_vm_name(connection)
     return "%s" % vgrnt.keyfile(vm_name=vm_name)
 
-def test_url_response(url):
-    pass
+def url_response(ip, port, path):
+    http_connection = httplib.HTTPConnection('%s:%s' % (ip, port))
+    try:
+        http_connection.request('GET', path)
+    except Exception as e:
+        return False, "%s" % e
+    resp = http_connection.getresponse()
+    if resp.status == 200:
+        return True, resp.read()
+    else:
+        return False, resp.read()
+    return False, None
 
 ############# IMPLEMENTATION ##############
 
@@ -61,15 +75,36 @@ def publish_app_task(task_args):
     if not jar_file_name.endswith('.jar'):
         abort("Looks like '%s' is not a jar file." % jar_file_name)
 
-    app_directory = config()['apps']['app']['dir']
-    target_file_name = str(uuid.uuid4())
-    target_file = "%s/%s.jar" % (app_directory, target_file_name)
+    conf = config()
 
-    command = "java -jar %s" % target_file
+    app_name = 'app'
+
+    app_directory = conf['apps'][app_name]['dir']
+
+    target_file = "%s/%s.jar" % (app_directory, app_name)
+
+    app_port = conf['apps'][app_name]['port']
+
+    command = "java -jar %s --server.port=%s" % (target_file, app_port)
 
     run('pkill -f "%s"' % command)
     put(jar_file, target_file)
-    run('nohup %s > %s/%s.log &' % (command, app_directory, target_file_name), pty=False)
+    run('nohup %s > %s/%s.log &' % (command, app_directory, app_name), pty=False)
+
+def test_app_url(task_args):
+    conf = config()
+    app_name = 'app'
+    connection = get_hosts_dict()[env.host_string]
+    vm_name = get_vm_name(connection)
+    ip = conf['hosts'][vm_name]['ip']
+    port = conf['apps'][app_name]['port']
+    path = '/'
+    status, resp = url_response(ip, port, path)
+    if status:
+        puts("App is running. Response: %s" % resp, end='\r\n')
+    else:
+        puts("App isn't running. Response: %s" % resp, end='\r\n')
+
 
 ############# IMPLEMENTATION ###############
 
@@ -77,6 +112,9 @@ def prepare_connection(function, connections, args):
     vm_name = env.host_string
     connection = connections[vm_name]   
     host = get_host(connection)
+    
+    args['vm_name'] = vm_name
+
     key_filename = get_key_filename(connection)
     with settings(key_filename=key_filename, warn_only=True):
         execute(function, host=host, task_args = args)
@@ -94,6 +132,9 @@ def list_hosts(args):
 def install_app(args):
     do_fabric(publish_app_task, args)
 
+def test_app(args):
+    do_fabric(test_app_url, args)
+
 ######## ARGUMENT COMMANDS ##########
 
 
@@ -108,6 +149,9 @@ if __name__ == '__main__':
     install_action = actions.add_parser('install', help='Install a jar to specified host')
     install_action.add_argument('jar')
     install_action.set_defaults(func=install_app)
+
+    test_action = actions.add_parser('test', help='Test the installed app')
+    test_action.set_defaults(func=test_app)
 
     args = vars(arg_parser.parse_args())
     
