@@ -7,7 +7,7 @@ import os
 from fabric.api import *
 import vagrant
 import httplib
-
+import time
 
 
 vgrnt = vagrant.Vagrant()
@@ -50,6 +50,21 @@ def get_key_filename(connection):
     vm_name = get_vm_name(connection)
     return "%s" % vgrnt.keyfile(vm_name=vm_name)
 
+def get_vm_ip(vm_name):
+    conf = config()
+    return conf['hosts'][vm_name]['ip']
+
+def get_app_port(app_name):
+    conf = config()
+    return conf['apps'][app_name]['port']
+
+def get_app_ip_port(host_string, app_name):
+    connection = get_hosts_dict()[host_string]
+    vm_name = get_vm_name(connection)
+    ip = get_vm_ip(vm_name)
+    port = get_app_port(app_name)    
+    return ip, port
+
 def url_response(ip, port, path):
     http_connection = httplib.HTTPConnection('%s:%s' % (ip, port))
     try:
@@ -64,6 +79,20 @@ def url_response(ip, port, path):
     return False, None
 
 ############# IMPLEMENTATION ##############
+def wait_for_app_task(task_args):
+    app_name = task_args['app_name']
+    ip, port = get_app_ip_port(env.host_string, app_name)
+    attempts_count = task_args['attempts_count']
+    env.host_string = task_args['vm_name']
+    for attempt in xrange(1, attempts_count + 1):
+        puts('Trying to get the app response... Attempt %s' % attempt, end='\r\n')
+        status, resp = url_response(ip, port, "/")
+        if status:
+           puts('Success. Response: %s' % resp, end='\r\n')
+           break
+        else:
+           puts('Failed. Response: %s' % resp, end='\r\n')
+        time.sleep(5)
 
 def publish_app_task(task_args):
     jar_file = task_args['jar']
@@ -91,13 +120,13 @@ def publish_app_task(task_args):
     put(jar_file, target_file)
     run('nohup %s > %s/%s.log &' % (command, app_directory, app_name), pty=False)
 
+    task_args['app_name'] = app_name
+    execute(wait_for_app_task, host=env.host_string, task_args=task_args)
+
 def test_app_url(task_args):
     conf = config()
     app_name = 'app'
-    connection = get_hosts_dict()[env.host_string]
-    vm_name = get_vm_name(connection)
-    ip = conf['hosts'][vm_name]['ip']
-    port = conf['apps'][app_name]['port']
+    ip, port = get_app_ip_port(env.host_string, app_name)
     path = '/'
     status, resp = url_response(ip, port, path)
     if status:
@@ -110,6 +139,8 @@ def test_app_url(task_args):
 
 def prepare_connection(function, connections, args):
     vm_name = env.host_string
+    if not vm_name:
+        return None
     connection = connections[vm_name]   
     host = get_host(connection)
     
@@ -148,6 +179,7 @@ if __name__ == '__main__':
 
     install_action = actions.add_parser('install', help='Install a jar to specified host')
     install_action.add_argument('jar')
+    install_action.add_argument('-c', default=20, dest='attempts_count', help='Count of attempts to make a http request')
     install_action.set_defaults(func=install_app)
 
     test_action = actions.add_parser('test', help='Test the installed app')
