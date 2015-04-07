@@ -1,8 +1,39 @@
-VirtualBox
-vagrant
-maven
-git
-jdk
-python-dev(python-devel)
-python-setuptool
+Для начала необходимо установить следующие пакеты для развертывания кластера. 
+  - VirtualBox
+  - vagrant
+  - maven
+  - gcc
+  - git
+  - jdk
+  - python-dev(python-devel)
+  - python-setuptool
+
+Заходим в систему под юзером root и забираем готовые проекты с github:
+  - git clone https://github.com/auvn/vagrant-puppet - средство для развертывания кластера с использованием VirtualBox
+  - git clone https://github.com/auvn/megafon        - Java приложение, реализующее HTTP-сервис
+
+Переходим в папку vagrant-puppet. Выполняем следующие действия:
+  - дополняем/изменяем при желании config.json (размер памяти для vm, образ для создания виртуалок)
+  - python prepare.py
+  - cd vagrant && vagrant up
+
+После завершения команды будет создан кластер. 
+Для сборки приложения необходимо перейти в каталог, в который был помещен репозиторий https://github.com/auvn/megafon и выполнить команду 
+
+      mvn package 
+
+После выполнения в подкаталоге target будет создан jar файл приложения.
+Для установки приложения на сервер необходимо вернуть в каталог vagrant-puppet/vagrant и запустить команду 
+
+      python deployer.py --hosts <список нодов, куда необходимо установить приложение (например, slave1,slave2)> install <путь к jar файлу> 
+
+После успешного завершения команды спустя некоторое время (<1min) приложение будет запущено на указанных нодах.
+Для проверки работоспособности приложения можно запустить команду 
+  
+      python deployer.py --hosts <список нодов, которые необходимо проверить> test
+
+В выводе будет показан результат.
+
+
+Тестировалось на CentOS, RedHat, Ubuntu
 
